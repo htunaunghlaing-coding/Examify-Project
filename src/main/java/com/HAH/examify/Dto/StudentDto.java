@@ -1,4 +1,4 @@
-package com.HAH.examify.Dto;
+package com.HAH.examify.dto;
 
 import java.util.List;
 
