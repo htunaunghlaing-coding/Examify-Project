@@ -22,9 +22,9 @@ public class Student {
 
 	@ManyToMany
 	@JoinTable(
-			name = "student_courses", 
+			name = "student_course", 
 			joinColumns = @JoinColumn(name = "student_id"), 
-			inverseJoinColumns = @JoinColumn(referencedColumnName = "course_id"))
+			inverseJoinColumns = @JoinColumn(name = "course_id"))
 	private List<Course> courses;
 
 	public Student() {

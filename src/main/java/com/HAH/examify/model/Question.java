@@ -2,6 +2,7 @@ package com.HAH.examify.model;
 
 import java.util.List;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -25,7 +26,7 @@ public class Question {
 	@JoinColumn(name = "exam_id", referencedColumnName = "id")
 	private Exam exam;
 
-	@OneToMany(mappedBy = "question")
+	@OneToMany(mappedBy = "question",cascade = CascadeType.ALL)
 	private List<Answer> answers;
 
 	public Question() {

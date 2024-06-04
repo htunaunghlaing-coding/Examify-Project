@@ -2,6 +2,7 @@ package com.HAH.examify.model;
 
 import java.util.List;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -22,7 +23,7 @@ public class Course {
 	@ManyToMany(mappedBy = "courses")
 	private List<Student> students;
 
-	@OneToOne(mappedBy = "course")
+	@OneToOne(mappedBy = "course", cascade = CascadeType.ALL)
 	private Exam exam;
 
 	public Course() {
