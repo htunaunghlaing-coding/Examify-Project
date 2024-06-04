@@ -1,7 +1,5 @@
 package com.HAH.examify.dto;
 
-import java.util.List;
-
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -20,6 +18,5 @@ public class QuestionDto {
 	private String questionText;
 	@NotNull(message = "Correct answer index is required")
 	private int correctAnswerIndex;
-	private List<AnswerDto> answers;
 
 }
