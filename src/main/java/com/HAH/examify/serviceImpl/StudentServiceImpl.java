@@ -26,8 +26,7 @@ public class StudentServiceImpl implements StudentService {
 	@Autowired
 	private ModelMapper modelMapper;
 
-	public StudentServiceImpl(CourseRepo courseRepo, StudentRepo studentRepo) {
-
+	public StudentServiceImpl(CourseRepo courseRepo, StudentRepo studentRepo) { 
 		this.courseRepo = courseRepo;
 		this.studentRepo = studentRepo;
 	}
