@@ -16,8 +16,8 @@ public interface AnswerService {
 
 	AnswerDto createAnswer(AnswerDto answerDto);
 
-	Optional<AnswerDto> updateAnswer(Long id, AnswerDto answerDto);
+	AnswerDto updateAnswer(Long id, AnswerDto answerDto);
 
-	boolean deleteAnswer(Long id);
+	void deleteAnswer(Long id);
 
 }

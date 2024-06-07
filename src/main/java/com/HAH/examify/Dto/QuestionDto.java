@@ -1,22 +1,51 @@
 package com.HAH.examify.dto;
 
+import java.util.List;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class QuestionDto {
 
 	private Long id;
-	@NotEmpty(message = "Question text is required")
-	@Size(min = 10, max = 1000, message = "Question text should be between 10 and 1000 characters")
-	private String questionText;
-	@NotNull(message = "Correct answer index is required")
-	private int correctAnswerIndex;
 
+	@NotEmpty(message = "Question text cannot be empty")
+	private String text;
+
+	@NotNull(message = "Exam ID cannot be null")
+	private Long examId;
+
+	private List<AnswerDto> answers;
+
+	// Getters and Setters
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public String getText() {
+		return text;
+	}
+
+	public void setText(String text) {
+		this.text = text;
+	}
+
+	public Long getExamId() {
+		return examId;
+	}
+
+	public void setExamId(Long examId) {
+		this.examId = examId;
+	}
+
+	public List<AnswerDto> getAnswers() {
+		return answers;
+	}
+
+	public void setAnswers(List<AnswerDto> answers) {
+		this.answers = answers;
+	}
 }

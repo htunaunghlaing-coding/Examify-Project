@@ -15,17 +15,19 @@ public class Answer {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	private String answerText;
+	private String text;
+
+	private boolean isCorrect;
 
 	@ManyToOne
-	@JoinColumn(name = "question_id", referencedColumnName = "id")
+	@JoinColumn(name = "question_id", nullable = false)
 	private Question question;
 
 	public Answer() {
 	}
 
-	public Answer(String answerText) {
-		this.answerText = answerText;
+	public Answer(String text) {
+		this.text = text;
 	}
 
 }

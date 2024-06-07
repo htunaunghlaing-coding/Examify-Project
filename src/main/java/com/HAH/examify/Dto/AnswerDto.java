@@ -1,18 +1,38 @@
 package com.HAH.examify.dto;
 
 import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class AnswerDto {
 
 	private Long id;
-	@NotEmpty(message = "Answer text is required")
-	@Size(min = 1, max = 500, message = "Answer text should be between 1 and 500 characters")
-	private String answerText;
+
+	@NotEmpty(message = "Answer text cannot be empty")
+	private String text;
+
+	private boolean isCorrect;
+
+	// Getters and Setters
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public String getText() {
+		return text;
+	}
+
+	public void setText(String text) {
+		this.text = text;
+	}
+
+	public boolean isCorrect() {
+		return isCorrect;
+	}
+
+	public void setCorrect(boolean isCorrect) {
+		this.isCorrect = isCorrect;
+	}
 }

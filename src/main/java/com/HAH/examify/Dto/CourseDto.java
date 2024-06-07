@@ -1,7 +1,7 @@
 package com.HAH.examify.dto;
 
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Size;
+import java.util.List;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,8 +12,9 @@ import lombok.NoArgsConstructor;
 public class CourseDto {
 
 	private Long id;
-	@NotEmpty(message = "Name is required")
-	@Size(min = 2, max = 100, message = "Name should be between 2 and 100 characters")
+
+	@NotNull(message = "Name is required")
 	private String name;
 
+	private List<Long> studentIds;
 }

@@ -19,20 +19,22 @@ public class Exam {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	private String name;
+
+	private String title;
 
 	@OneToOne
-	@JoinColumn(name = "course_id", referencedColumnName = "id")
+	@JoinColumn(name = "course_id", nullable = false)
 	private Course course;
 
-	@OneToMany(mappedBy = "exam",cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "exam", cascade = CascadeType.ALL)
 	private List<Question> questions;
 
 	public Exam() {
 	}
 
-	public Exam(String name) {
-		this.name = name;
+	public Exam(Long id, String title) {
+		this.id = id;
+		this.title = title;
 	}
 
 }

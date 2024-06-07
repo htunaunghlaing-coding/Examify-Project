@@ -4,68 +4,62 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.HAH.examify.dto.StudentDto;
 import com.HAH.examify.model.Student;
-import com.HAH.examify.repository.CourseRepo;
-import com.HAH.examify.repository.StudentRepo;
+import com.HAH.examify.repository.StudentRepository;
 import com.HAH.examify.service.StudentService;
-
-import jakarta.validation.Valid;
 
 @Service
 public class StudentServiceImpl implements StudentService {
 
-	private CourseRepo courseRepo;
-
-	private StudentRepo studentRepo;
-
 	@Autowired
-	private ModelMapper modelMapper;
-
-	public StudentServiceImpl(CourseRepo courseRepo, StudentRepo studentRepo) { 
-		this.courseRepo = courseRepo;
-		this.studentRepo = studentRepo;
-	}
+	private StudentRepository studentRepository;
 
 	@Override
 	public List<StudentDto> getAllStudents() {
-		return studentRepo.findAll().stream().map(student -> modelMapper.map(student, StudentDto.class))
-				.collect(Collectors.toList());
+		return studentRepository.findAll().stream().map(this::toDto).collect(Collectors.toList());
 	}
 
 	@Override
 	public Optional<StudentDto> getStudentById(Long id) {
-		return studentRepo.findById(id).map(student -> modelMapper.map(student, StudentDto.class));
+		return studentRepository.findById(id).map(this::toDto);
 	}
 
 	@Override
-	public StudentDto createStudent(@Valid StudentDto studentDto) {
-		Student student = modelMapper.map(studentDto, Student.class);
-		Student savedStudent = studentRepo.save(student);
-		return modelMapper.map(savedStudent, StudentDto.class);
+	public StudentDto createStudent(StudentDto studentDto) {
+		Student student = fromDto(studentDto);
+		return toDto(studentRepository.save(student));
 	}
 
 	@Override
-	public Optional<StudentDto> updateStudent(Long id, @Valid StudentDto studentDto) {
-		if (!studentRepo.existsById(id)) {
-			return Optional.empty();
+	public StudentDto updateStudent(Long id, StudentDto studentDto) {
+		Optional<Student> existingStudent = studentRepository.findById(id);
+		if (existingStudent.isPresent()) {
+			Student student = existingStudent.get();
+			student.setName(studentDto.getName());
+			return toDto(studentRepository.save(student));
 		}
-		Student student = modelMapper.map(studentDto, Student.class);
-		student.setId(id);
-		Student updatedStudent = studentRepo.save(student);
-		return Optional.of(modelMapper.map(updatedStudent, StudentDto.class));
+		return null;
 	}
 
 	@Override
-	public boolean deleteStudent(Long id) {
-		if (!studentRepo.existsById(id)) {
-			return false;
-		}
-		studentRepo.deleteById(id);
-		return true;
+	public void deleteStudent(Long id) {
+		studentRepository.deleteById(id);
+	}
+
+	private StudentDto toDto(Student student) {
+		StudentDto dto = new StudentDto();
+		dto.setId(student.getId());
+		dto.setName(student.getName());
+		return dto;
+	}
+
+	private Student fromDto(StudentDto dto) {
+		Student student = new Student();
+		student.setName(dto.getName());
+		return student;
 	}
 }

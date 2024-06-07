@@ -4,114 +4,103 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.HAH.examify.dto.ExamDto;
+import com.HAH.examify.dto.QuestionDto;
 import com.HAH.examify.model.Answer;
+import com.HAH.examify.model.Course;
 import com.HAH.examify.model.Exam;
 import com.HAH.examify.model.Question;
-import com.HAH.examify.model.Student;
-import com.HAH.examify.repository.AnswerRepo;
-import com.HAH.examify.repository.ExamRepo;
-import com.HAH.examify.repository.QuestionRepo;
-import com.HAH.examify.repository.StudentRepo;
+import com.HAH.examify.repository.CourseRepository;
+import com.HAH.examify.repository.ExamRepository;
 import com.HAH.examify.service.ExamService;
 
 @Service
 public class ExamServiceImpl implements ExamService {
 
-	private StudentRepo studentRepo;
+	@Autowired
+	private ExamRepository examRepository;
 
-	private ExamRepo examRepo;
+	@Autowired
+	private CourseRepository courseRepository;
 
-	private QuestionRepo questionRepo;
-
-	private AnswerRepo answerRepo;
-
+	@Autowired
 	private ModelMapper modelMapper;
-
-	public ExamServiceImpl(StudentRepo studentRepo, ExamRepo examRepo, QuestionRepo questionRepo, AnswerRepo answerRepo,
-			ModelMapper modelMapper) {
-		this.studentRepo = studentRepo;
-		this.examRepo = examRepo;
-		this.questionRepo = questionRepo;
-		this.answerRepo = answerRepo;
-		this.modelMapper = modelMapper;
-	}
 
 	@Override
 	public List<ExamDto> getAllExams() {
-		return examRepo.findAll().stream().map(exam -> modelMapper.map(exam, ExamDto.class))
-				.collect(Collectors.toList());
+		return examRepository.findAll().stream().map(this::toDto).collect(Collectors.toList());
 	}
 
 	@Override
 	public Optional<ExamDto> getExamById(Long id) {
-		return examRepo.findById(id).map(exam -> modelMapper.map(exam, ExamDto.class));
+		return examRepository.findById(id).map(this::toDto);
 	}
 
 	@Override
-	public ExamDto createExam(ExamDto examDTO) {
-		Exam exam = modelMapper.map(examDTO, Exam.class);
-		Exam savedExam = examRepo.save(exam);
-		return modelMapper.map(savedExam, ExamDto.class);
+	public ExamDto createExam(ExamDto examDto) {
+		Exam exam = fromDto(examDto);
+		Exam savedExam = examRepository.save(exam);
+		return toDto(savedExam);
 	}
 
 	@Override
-	public Optional<ExamDto> updateExam(Long id, ExamDto examDTO) {
-		if (!examRepo.existsById(id)) {
-			return Optional.empty();
+	public ExamDto updateExam(Long id, ExamDto examDto) {
+		Optional<Exam> existingExam = examRepository.findById(id);
+		if (existingExam.isPresent()) {
+			Exam exam = existingExam.get();
+			modelMapper.map(examDto, exam);
+			Exam updatedExam = examRepository.save(exam);
+			return toDto(updatedExam);
 		}
-		Exam exam = modelMapper.map(examDTO, Exam.class);
-		exam.setId(id);
-		Exam updatedExam = examRepo.save(exam);
-		return Optional.of(modelMapper.map(updatedExam, ExamDto.class));
+		return null;
 	}
 
 	@Override
-	public boolean deleteExam(Long id) {
-		if (!examRepo.existsById(id)) {
-			return false;
+	public void deleteExam(Long id) {
+		examRepository.deleteById(id);
+	}
+
+	private ExamDto toDto(Exam exam) {
+		ExamDto examDto = modelMapper.map(exam, ExamDto.class);
+		if (exam.getCourse() != null) {
+			examDto.setCourseId(exam.getCourse().getId());
 		}
-		examRepo.deleteById(id);
-		return true;
+		return examDto;
 	}
 
-	@Override
-	public String evaluateExam(Long studentId, Long examId, List<Long> answerIds) {
-		Student student = studentRepo.findById(studentId)
-                .orElseThrow(() -> new IllegalArgumentException("Student not found"));
+	private Exam fromDto(ExamDto examDto) {
+		Exam exam = modelMapper.map(examDto, Exam.class);
 
-        Exam exam = examRepo.findById(examId)
-                .orElseThrow(() -> new IllegalArgumentException("Exam not found"));
+		if (examDto.getCourseId() != null) {
+			Course course = courseRepository.findById(examDto.getCourseId())
+					.orElseThrow(() -> new RuntimeException("Course not found"));
+			exam.setCourse(course);
+		}
 
-        if (!student.getCourses().contains(exam.getCourse())) {
-            throw new IllegalArgumentException("Student is not enrolled in this course");
-        }
+		if (examDto.getQuestions() != null && !examDto.getQuestions().isEmpty()) {
+			List<Question> questions = examDto.getQuestions().stream().map(this::mapQuestionDtoToEntity)
+					.collect(Collectors.toList());
+			exam.setQuestions(questions);
+		}
 
-        int totalQuestions = exam.getQuestions().size();
-        int correctAnswers = 0;
+		return exam;
+	}
 
-        for (int i = 0; i < totalQuestions; i++) {
-            Question question = exam.getQuestions().get(i);
-            Answer selectedAnswer = answerRepo.findById(answerIds.get(i))
-                    .orElseThrow(() -> new IllegalArgumentException("Answer not found"));
+	private Question mapQuestionDtoToEntity(QuestionDto questionDto) {
+		Question question = modelMapper.map(questionDto, Question.class);
+		question.setExam(null); // The exam will be set later in fromDto method
 
-            if (question.getAnswers().contains(selectedAnswer) &&
-                question.getAnswers().indexOf(selectedAnswer) == question.getCorrectAnswerIndex()) {
-                correctAnswers++;
-            }
-        }
-
-        double score = (double) correctAnswers / totalQuestions * 100;
-        if (score >= 75) {
-            return "Pass with Distinction";
-        } else if (score >= 60) {
-            return "Pass with Merit";
-        } else if (score >= 40) {
-            return "Pass";
-        } else {
-            return "Fail";
-        }
+		if (questionDto.getAnswers() != null && !questionDto.getAnswers().isEmpty()) {
+			List<Answer> answers = questionDto.getAnswers().stream().map(answerDto -> {
+				Answer answer = modelMapper.map(answerDto, Answer.class);
+				answer.setQuestion(question);
+				return answer;
+			}).collect(Collectors.toList());
+			question.setAnswers(answers);
+		}
+		return question;
 	}
 
 }

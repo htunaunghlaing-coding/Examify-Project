@@ -1,12 +1,16 @@
 package com.HAH.examify.serviceImpl;
 
+import com.HAH.examify.dto.QuestionDto;
+import com.HAH.examify.model.Answer;
+import com.HAH.examify.model.Exam;
+import com.HAH.examify.model.Question;
+import com.HAH.examify.repository.ExamRepository;
+import com.HAH.examify.repository.QuestionRepository;
+import com.HAH.examify.service.QuestionService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.HAH.examify.dto.QuestionDto;
-import com.HAH.examify.model.Question;
-import com.HAH.examify.repository.QuestionRepo;
-import com.HAH.examify.service.QuestionService;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -15,46 +19,78 @@ import java.util.stream.Collectors;
 public class QuestionServiceImpl implements QuestionService {
 
 	@Autowired
-	private QuestionRepo questionRepo;
+	private QuestionRepository questionRepository;
+
+	@Autowired
+	private ExamRepository examRepository;
 
 	@Autowired
 	private ModelMapper modelMapper;
 
 	@Override
 	public List<QuestionDto> getAllQuestions() {
-		return questionRepo.findAll().stream().map(question -> modelMapper.map(question, QuestionDto.class))
-				.collect(Collectors.toList());
+		return questionRepository.findAll().stream().map(this::toDto).collect(Collectors.toList());
 	}
 
 	@Override
 	public Optional<QuestionDto> getQuestionById(Long id) {
-		return questionRepo.findById(id).map(question -> modelMapper.map(question, QuestionDto.class));
+		return questionRepository.findById(id).map(this::toDto);
 	}
 
 	@Override
-	public QuestionDto createQuestion(QuestionDto questionDTO) {
-		Question question = modelMapper.map(questionDTO, Question.class);
-		Question savedQuestion = questionRepo.save(question);
-		return modelMapper.map(savedQuestion, QuestionDto.class);
+	public QuestionDto createQuestion(QuestionDto questionDto) {
+		Question question = fromDto(questionDto);
+		Question savedQuestion = questionRepository.save(question);
+		return toDto(savedQuestion);
 	}
 
 	@Override
-	public Optional<QuestionDto> updateQuestion(Long id, QuestionDto questionDTO) {
-		if (!questionRepo.existsById(id)) {
-			return Optional.empty();
+	public QuestionDto updateQuestion(Long id, QuestionDto questionDto) {
+		Optional<Question> existingQuestion = questionRepository.findById(id);
+		if (existingQuestion.isPresent()) {
+			Question question = existingQuestion.get();
+			modelMapper.map(questionDto, question);
+			Question updatedQuestion = questionRepository.save(question);
+			return toDto(updatedQuestion);
 		}
-		Question question = modelMapper.map(questionDTO, Question.class);
-		question.setId(id);
-		Question updatedQuestion = questionRepo.save(question);
-		return Optional.of(modelMapper.map(updatedQuestion, QuestionDto.class));
+		return null;
 	}
 
 	@Override
-	public boolean deleteQuestion(Long id) {
-		if (!questionRepo.existsById(id)) {
-			return false;
+	public void deleteQuestion(Long id) {
+		questionRepository.deleteById(id);
+	}
+
+	private QuestionDto toDto(Question question) {
+		QuestionDto dto = modelMapper.map(question, QuestionDto.class);
+		if (question.getExam() != null) {
+			dto.setExamId(question.getExam().getId());
 		}
-		questionRepo.deleteById(id);
-		return true;
+		return dto;
+	}
+
+	@Override
+	public Question fromDto(QuestionDto dto) {
+		// Convert QuestionDto to Question entity
+		Question question = modelMapper.map(dto, Question.class);
+
+		// Fetch and set the Exam based on the provided Exam ID in the DTO
+		if (dto.getExamId() != null) {
+			Exam exam = examRepository.findById(dto.getExamId())
+					.orElseThrow(() -> new RuntimeException("Exam not found"));
+			question.setExam(exam);
+		}
+
+		// Map and set Answers if provided
+		if (dto.getAnswers() != null && !dto.getAnswers().isEmpty()) {
+			List<Answer> answers = dto.getAnswers().stream().map(answerDto -> {
+				Answer answer = modelMapper.map(answerDto, Answer.class);
+				answer.setQuestion(question); // Set the relationship
+				return answer;
+			}).collect(Collectors.toList());
+			question.setAnswers(answers);
+		}
+
+		return question;
 	}
 }

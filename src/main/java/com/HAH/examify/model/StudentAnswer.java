@@ -10,27 +10,30 @@ import lombok.Data;
 
 @Entity
 @Data
-public class StudentExamResult {
-
+public class StudentAnswer {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	private int score;
 
 	@ManyToOne
-	@JoinColumn(name = "student_id", referencedColumnName = "id")
+	@JoinColumn(name = "student_id", nullable = false)
 	private Student student;
 
 	@ManyToOne
-	@JoinColumn(name = "exam_id", referencedColumnName = "id")
-	private Exam exam;
+	@JoinColumn(name = "question_id", nullable = false)
+	private Question question;
 
-	public StudentExamResult() {
+	@ManyToOne
+	@JoinColumn(name = "answer_id", nullable = false)
+	private Answer answer;
+
+	public StudentAnswer() {
 	}
 
-	public StudentExamResult(Long id, int score) {
-		this.id = id;
-		this.score = score;
+	public StudentAnswer(Student student, Question question, Answer answer) {
+		this.student = student;
+		this.question = question;
+		this.answer = answer;
 	}
 
 }

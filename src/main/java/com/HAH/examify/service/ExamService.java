@@ -11,11 +11,9 @@ public interface ExamService {
 
 	Optional<ExamDto> getExamById(Long id);
 
-	ExamDto createExam(ExamDto examDTO);
+	ExamDto createExam(ExamDto examDto);
 
-	Optional<ExamDto> updateExam(Long id, ExamDto examDTO);
+	ExamDto updateExam(Long id, ExamDto examDto);
 
-	boolean deleteExam(Long id);
-
-	String evaluateExam(Long studentId, Long examId, List<Long> answerIds);
+	void deleteExam(Long id);
 }

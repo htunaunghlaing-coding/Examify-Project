@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 import com.HAH.examify.dto.QuestionDto;
+import com.HAH.examify.model.Question;
 
 @Service
 public interface QuestionService {
@@ -16,7 +17,9 @@ public interface QuestionService {
 
 	QuestionDto createQuestion(QuestionDto questionDto);
 
-	Optional<QuestionDto> updateQuestion(Long id, QuestionDto questionDto);
+	QuestionDto updateQuestion(Long id, QuestionDto questionDto);
 
-	boolean deleteQuestion(Long Id);
+	void deleteQuestion(Long id);
+
+	Question fromDto(QuestionDto dto);
 }

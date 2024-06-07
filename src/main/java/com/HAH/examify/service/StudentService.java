@@ -16,7 +16,7 @@ public interface StudentService {
 
 	StudentDto createStudent(StudentDto studentDto);
 
-	Optional<StudentDto> updateStudent(Long id, StudentDto studentDto);
+	StudentDto updateStudent(Long id, StudentDto studentDto);
 
-	boolean deleteStudent(Long id);
+	void deleteStudent(Long id);
 }

@@ -1,12 +1,13 @@
 package com.HAH.examify.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 import com.HAH.examify.dto.QuestionDto;
 import com.HAH.examify.service.QuestionService;
-
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/questions")
@@ -22,24 +23,26 @@ public class QuestionController {
 
 	@GetMapping("/{id}")
 	public ResponseEntity<QuestionDto> getQuestionById(@PathVariable Long id) {
-		return ResponseEntity.of(questionService.getQuestionById(id));
+		Optional<QuestionDto> question = questionService.getQuestionById(id);
+		return question.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
 	}
 
 	@PostMapping
-	public QuestionDto createQuestion(@RequestBody QuestionDto QuestionDto) {
-		return questionService.createQuestion(QuestionDto);
+	public ResponseEntity<QuestionDto> createQuestion(@Validated @RequestBody QuestionDto questionDto) {
+		QuestionDto createdQuestion = questionService.createQuestion(questionDto);
+		return ResponseEntity.ok(createdQuestion);
 	}
 
 	@PutMapping("/{id}")
-	public ResponseEntity<QuestionDto> updateQuestion(@PathVariable Long id, @RequestBody QuestionDto QuestionDto) {
-		return ResponseEntity.of(questionService.updateQuestion(id, QuestionDto));
+	public ResponseEntity<QuestionDto> updateQuestion(@PathVariable Long id,
+			@Validated @RequestBody QuestionDto questionDto) {
+		QuestionDto updatedQuestion = questionService.updateQuestion(id, questionDto);
+		return updatedQuestion != null ? ResponseEntity.ok(updatedQuestion) : ResponseEntity.notFound().build();
 	}
 
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> deleteQuestion(@PathVariable Long id) {
-		if (questionService.deleteQuestion(id)) {
-			return ResponseEntity.noContent().build();
-		}
-		return ResponseEntity.notFound().build();
+		questionService.deleteQuestion(id);
+		return ResponseEntity.noContent().build();
 	}
 }

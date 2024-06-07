@@ -16,8 +16,10 @@ public interface CourseService {
 
 	CourseDto createCourse(CourseDto courseDto);
 
-	Optional<CourseDto> updateCourse(Long id, CourseDto courseDto);
+	CourseDto updateCourse(Long id, CourseDto courseDto);
 
-	boolean deleteCourse(Long id);
+	void deleteCourse(Long id);
+
+	boolean enrollStudentInCourse(Long courseId, Long studentId);
 
 }

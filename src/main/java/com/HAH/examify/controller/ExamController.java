@@ -1,13 +1,20 @@
 package com.HAH.examify.controller;
 
+import java.util.List;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import com.HAH.examify.dto.ExamDto;
 import com.HAH.examify.service.ExamService;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/exams")
@@ -23,30 +30,25 @@ public class ExamController {
 
 	@GetMapping("/{id}")
 	public ResponseEntity<ExamDto> getExamById(@PathVariable Long id) {
-		return ResponseEntity.of(examService.getExamById(id));
+		Optional<ExamDto> exam = examService.getExamById(id);
+		return exam.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
 	}
 
 	@PostMapping
-	public ExamDto createExam(@RequestBody ExamDto ExamDto) {
-		return examService.createExam(ExamDto);
+	public ResponseEntity<ExamDto> createExam(@Validated @RequestBody ExamDto examDto) {
+		ExamDto createdExam = examService.createExam(examDto);
+		return ResponseEntity.ok(createdExam);
 	}
 
 	@PutMapping("/{id}")
-	public ResponseEntity<ExamDto> updateExam(@PathVariable Long id, @RequestBody ExamDto ExamDto) {
-		return ResponseEntity.of(examService.updateExam(id, ExamDto));
+	public ResponseEntity<ExamDto> updateExam(@PathVariable Long id, @Validated @RequestBody ExamDto examDto) {
+		ExamDto updatedExam = examService.updateExam(id, examDto);
+		return updatedExam != null ? ResponseEntity.ok(updatedExam) : ResponseEntity.notFound().build();
 	}
 
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> deleteExam(@PathVariable Long id) {
-		if (examService.deleteExam(id)) {
-			return ResponseEntity.noContent().build();
-		}
-		return ResponseEntity.notFound().build();
-	}
-
-	@PostMapping("/{id}/evaluate")
-	public ResponseEntity<String> evaluateExam(@PathVariable Long id, @RequestParam Long studentId,
-			@RequestBody List<Long> answerIds) {
-		return ResponseEntity.ok(examService.evaluateExam(studentId, id, answerIds));
+		examService.deleteExam(id);
+		return ResponseEntity.noContent().build();
 	}
 }
